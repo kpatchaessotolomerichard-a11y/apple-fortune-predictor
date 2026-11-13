@@ -1,69 +1,116 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apple Fortune</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apple Fortune Bot</title>
 <style>
 body {
-  background: #101827;
-  color: white;
-  font-family: Arial;
-  text-align: center;
-  padding: 20px;
+  background:#101827;
+  color:white;
+  font-family:Arial,sans-serif;
+  text-align:center;
+  padding:15px;
 }
 .container {
-  max-width: 400px;
-  margin: auto;
-  background: #1e293b;
-  padding: 20px;
-  border-radius: 15px;
+  max-width:420px;
+  margin:auto;
+  background:#1e293b;
+  padding:20px;
+  border-radius:15px;
 }
-h1 { color: #facc15; }
-input, button {
-  width: 90%;
-  padding: 13px;
-  margin: 10px;
-  border-radius: 8px;
-  border: none;
-  font-size: 16px;
+h1 {color:#facc15;}
+input,button {
+  width:90%;
+  padding:13px;
+  margin:8px;
+  border:0;
+  border-radius:8px;
+  font-size:16px;
 }
 button {
-  background: #16a34a;
-  color: white;
-  font-weight: bold;
+  background:#16a34a;
+  color:white;
+  font-weight:bold;
 }
 .result {
-  font-size: 20px;
-  color: #facc15;
-  margin-top: 20px;
+  background:#334155;
+  padding:15px;
+  border-radius:10px;
+  margin-top:15px;
 }
+li {text-align:left;margin:8px;}
 </style>
 </head>
 <body>
 <div class="container">
 <h1>🍎 APPLE FORTUNE</h1>
-<p>Assistant d'analyse du jeu</p>
-<input id="resultat" type="text"
-placeholder="Entrez votre dernier résultat">
+<p>Assistant d'analyse statistique</p>
+
+<input id="valeur" type="number" step="0.01"
+min="0" placeholder="Exemple : 2.50">
+
+<button onclick="ajouter()">ENREGISTRER</button>
 <button onclick="analyser()">ANALYSER</button>
-<div class="result" id="sortie">
-Votre analyse apparaîtra ici.
+<button onclick="effacer()">EFFACER L'HISTORIQUE</button>
+
+<div class="result" id="analyse">
+Entrez vos résultats pour commencer.
 </div>
+
+<h3>Historique</h3>
+<ul id="historique"></ul>
 </div>
+
 <script>
-function analyser() {
-  let valeur = document.getElementById("resultat").value;
-  if (!valeur.trim()) {
-    document.getElementById("sortie").innerText =
-    "Veuillez entrer un résultat.";
-    return;
-  }
-  document.getElementById("sortie").innerText =
-  "Résultat enregistré : " + valeur +
-  ". Aucun prochain résultat ne peut être garanti.";
+let donnees = JSON.parse(
+ localStorage.getItem("appleFortune") || "[]"
+);
+
+function afficher() {
+ document.getElementById("historique").innerHTML =
+ donnees.map(x => "<li>"+x.toFixed(2)+"x</li>").join("");
 }
+
+function ajouter() {
+ let v = Number(document.getElementById("valeur").value);
+ if (!Number.isFinite(v) || v <= 0) {
+  alert("Entrez un nombre supérieur à zéro.");
+  return;
+ }
+ donnees.push(v);
+ localStorage.setItem("appleFortune",JSON.stringify(donnees));
+ document.getElementById("valeur").value="";
+ afficher();
+}
+
+function analyser() {
+ if (!donnees.length) {
+  document.getElementById("analyse").innerText =
+  "Ajoutez d'abord des résultats.";
+  return;
+ }
+ let somme = donnees.reduce((a,b)=>a+b,0);
+ let moyenne = somme/donnees.length;
+ let maximum = Math.max(...donnees);
+ let minimum = Math.min(...donnees);
+ document.getElementById("analyse").innerHTML =
+ "Nombre de résultats : "+donnees.length+
+ "<br>Moyenne : "+moyenne.toFixed(2)+"x"+
+ "<br>Maximum : "+maximum.toFixed(2)+"x"+
+ "<br>Minimum : "+minimum.toFixed(2)+"x"+
+ "<br><br>Ces statistiques décrivent le passé et ne prédisent pas le prochain résultat.";
+}
+
+function effacer() {
+ if(confirm("Effacer tout l'historique ?")) {
+  donnees=[];
+  localStorage.removeItem("appleFortune");
+  afficher();
+  document.getElementById("analyse").innerText="Historique effacé.";
+ }
+}
+afficher();
 </script>
 </body>
 </html>
